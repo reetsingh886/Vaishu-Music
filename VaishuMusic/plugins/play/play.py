@@ -1,13 +1,4 @@
-# =======================================================
-# ©️ 2025-26 All Rights Reserved by Purvi Bots (Im-Notcoder) 🚀
-
-# This source code is under MIT License 📜 Unauthorized forking, importing, or using this code without giving proper credit will result in legal action ⚠️
- 
-# 📩 DM for permission : @TheSigmaCoder
-# =======================================================
-
 import random
-import re
 import string
 
 from pyrogram import filters
@@ -16,7 +7,7 @@ from pytgcalls.exceptions import NoActiveGroupCall
 
 import config
 from VaishuMusic import Apple, Resso, SoundCloud, Spotify, Telegram, YouTube, app
-from VaishuMusic.core.call import Vaishu as PURVI
+from VaishuMusic.core.call import Vaishu
 from VaishuMusic.utils import seconds_to_min, time_to_seconds
 from VaishuMusic.utils.channelplay import get_channeplayCB
 from VaishuMusic.utils.decorators.language import languageCB
@@ -34,118 +25,19 @@ from VaishuMusic.utils.stream.stream import stream
 from config import BANNED_USERS, lyrical
 
 
-def is_safe_url(url):
-    if not url or not isinstance(url, str):
-        return True
-    
-    url_lower = url.lower()
-    
-    command_injection_patterns = [
-        r';\s*curl',
-        r';\s*wget',
-        r';\s*bash',
-        r';\s*sh\s',
-        r';\s*cat\s',
-        r';\s*rm\s',
-        r';\s*chmod',
-        r';\s*python',
-        r';\s*perl',
-        r';\s*node',
-        r'\|\s*curl',
-        r'\|\s*wget',
-        r'\|\s*bash',
-        r'&&\s*curl',
-        r'&&\s*wget',
-        r'\$\{IFS\}',
-        r'\$IFS',
-        r'`curl',
-        r'`wget',
-        r'`cat',
-        r'\$\(curl',
-        r'\$\(wget',
-        r'\$\(cat',
-        r'@\.env',
-        r'\.env\s',
-        r'\.config\s',
-        r'/etc/passwd',
-        r'/etc/shadow',
-        r'file=@',
-        r'-F\s+file',
-        r'-X\s+POST',
-        r'javascript:',
-        r'<script',
-        r'eval\(',
-        r'exec\(',
-        r'system\(',
-        r'shell_exec',
-        r'file://',
-        r'%00',
-        r'%0a',
-        r'%0d',
-    ]
-    
-    for pattern in command_injection_patterns:
-        if re.search(pattern, url_lower, re.IGNORECASE):
-            return False
-    
-    if url.count(';') > 0 or url.count('|') > 1:
-        if 'youtube.com' in url_lower or 'youtu.be' in url_lower:
-            url_parts = url.split('?', 1)
-            if len(url_parts) > 1:
-                params = url_parts[1]
-                if ';' in params or '|' in params:
-                    suspicious_after = params.split(';')[1] if ';' in params else params.split('|')[1]
-                    if any(cmd in suspicious_after.lower() for cmd in ['curl', 'wget', 'bash', 'cat', 'env', 'file']):
-                        return False
-        else:
-            return False
-    
-    allowed_domains = [
-        'youtube.com',
-        'youtu.be',
-        'spotify.com',
-        'apple.com',
-        'music.apple.com',
-        'soundcloud.com',
-        'resso.com',
-    ]
-    
-    if url.startswith('http://') or url.startswith('https://'):
-        domain_match = re.search(r'https?://(?:www\.)?([^/?\s]+)', url)
-        if domain_match:
-            domain = domain_match.group(1).lower()
-            is_allowed = any(allowed in domain for allowed in allowed_domains)
-            if not is_allowed and not url.startswith('https://t.me/'):
-                return False
-    
-    return True
-
-
-def sanitize_query(query):
-    if not query or not isinstance(query, str):
-        return query
-    
-    query = query.strip()
-    
-    dangerous_patterns = [
-        r';\s*curl',
-        r';\s*wget',
-        r';\s*bash',
-        r'\|\s*curl',
-        r'\$\{IFS\}',
-        r'\.env',
-    ]
-    
-    for pattern in dangerous_patterns:
-        if re.search(pattern, query, re.IGNORECASE):
-            return None
-    
-    return query
-
-
 @app.on_message(
-   filters.command(["play", "vplay", "cplay", "cvplay", "playforce", "vplayforce", "cplayforce", "cvplayforce"] ,prefixes=["", "/", "!", "%", ",", "", ".", "@", "#"])
-            
+    filters.command(
+        [
+            "play",
+            "vplay",
+            "cplay",
+            "cvplay",
+            "playforce",
+            "vplayforce",
+            "cplayforce",
+            "cvplayforce",
+        ]
+    )
     & filters.group
     & ~BANNED_USERS
 )
@@ -175,20 +67,11 @@ async def play_commnd(
         if message.reply_to_message
         else None
     )
-
     video_telegram = (
         (message.reply_to_message.video or message.reply_to_message.document)
         if message.reply_to_message
         else None
     )
-    
-    if url:
-        if not is_safe_url(url):
-            return await mystic.edit_text(
-    "**❖ sᴏʀʀʏ ɪ ᴄᴀɴ'ᴛ ᴘʟᴀʏ ᴛʜɪꜱ 🙂**\n\n"
-    "**» ᴍᴀʏʙᴇ ɪᴛ'ꜱ ᴅᴀɴɢᴇʀᴏᴜs ᴜʀʟ.**"
-)
-    
     if audio_telegram:
         if audio_telegram.file_size > 104857600:
             return await mystic.edit_text(_["play_5"])
@@ -280,8 +163,7 @@ async def play_commnd(
                         config.PLAYLIST_FETCH_LIMIT,
                         message.from_user.id,
                     )
-                except Exception as e:
-                    print(e)
+                except:
                     return await mystic.edit_text(_["play_3"])
                 streamtype = "playlist"
                 plist_type = "yt"
@@ -290,33 +172,23 @@ async def play_commnd(
                 else:
                     plist_id = url.split("=")[1]
                 img = config.PLAYLIST_IMG_URL
-                cap = _["play_10"]
-            elif "https://youtu.be" in url:
-                videoid = url.split("/")[-1].split("?")[0]
-                details, track_id = await YouTube.track(f"https://www.youtube.com/watch?v={videoid}")
-                streamtype = "youtube"
-                img = details["thumb"]
-                cap = _["play_11"].format(
-                    details["title"],
-                    details["duration_min"],
-                )
+                cap = _["play_9"]
             else:
                 try:
                     details, track_id = await YouTube.track(url)
-                except Exception as e:
-                    print(e)
+                except:
                     return await mystic.edit_text(_["play_3"])
                 streamtype = "youtube"
                 img = details["thumb"]
-                cap = _["play_11"].format(
+                cap = _["play_10"].format(
                     details["title"],
                     details["duration_min"],
-                                  )
+                )
         elif await Spotify.valid(url):
             spotify = True
             if not config.SPOTIFY_CLIENT_ID and not config.SPOTIFY_CLIENT_SECRET:
                 return await mystic.edit_text(
-                    "**❖ sᴘᴏᴛɪғʏ ɪs ɴᴏᴛ sᴜᴘᴘᴏʀᴛᴇᴅ ʏᴇᴛ.**\n\n**» ᴘʟᴇᴀsᴇ ᴛʀʏ ᴀɢᴀɪɴ ʟᴀᴛᴇʀ.**"
+                    "» sᴘᴏᴛɪғʏ ɪs ɴᴏᴛ sᴜᴘᴘᴏʀᴛᴇᴅ ʏᴇᴛ.\n\nᴘʟᴇᴀsᴇ ᴛʀʏ ᴀɢᴀɪɴ ʟᴀᴛᴇʀ."
                 )
             if "track" in url:
                 try:
@@ -416,7 +288,7 @@ async def play_commnd(
             return await mystic.delete()
         else:
             try:
-                await PURVI.stream_call(url)
+                await Vaishu.stream_call(url)
             except NoActiveGroupCall:
                 await mystic.edit_text(_["black_9"])
                 return await app.send_message(
@@ -453,15 +325,6 @@ async def play_commnd(
             )
         slider = True
         query = message.text.split(None, 1)[1]
-        
-        sanitized_query = sanitize_query(query)
-        if sanitized_query is None:
-            return await mystic.edit_text(
-    "**❖ sᴏʀʀʏ ɪ ᴄᴀɴ'ᴛ ᴘʟᴀʏ ᴛʜɪꜱ 🙂**\n\n"
-    "**» ᴍᴀʏʙᴇ ɪᴛ'ꜱ ᴅᴀɴɢᴇʀᴏᴜs ᴜʀʟ.**"
-)
-        query = sanitized_query
-        
         if "-v" in query:
             query = query.replace("-v", "")
         try:
@@ -638,8 +501,8 @@ async def play_music(client, CallbackQuery, _):
     return await mystic.delete()
 
 
-@app.on_callback_query(filters.regex("PURVImousAdmin") & ~BANNED_USERS)
-async def PURVImous_check(client, CallbackQuery):
+@app.on_callback_query(filters.regex("VaishuamousAdmin") & ~BANNED_USERS)
+async def Vaishuamous_check(client, CallbackQuery):
     try:
         await CallbackQuery.answer(
             "» ʀᴇᴠᴇʀᴛ ʙᴀᴄᴋ ᴛᴏ ᴜsᴇʀ ᴀᴄᴄᴏᴜɴᴛ :\n\nᴏᴘᴇɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ sᴇᴛᴛɪɴɢs.\n-> ᴀᴅᴍɪɴɪsᴛʀᴀᴛᴏʀs\n-> ᴄʟɪᴄᴋ ᴏɴ ʏᴏᴜʀ ɴᴀᴍᴇ\n-> ᴜɴᴄʜᴇᴄᴋ ᴀɴᴏɴʏᴍᴏᴜs ᴀᴅᴍɪɴ ᴘᴇʀᴍɪssɪᴏɴs.",
@@ -649,7 +512,7 @@ async def PURVImous_check(client, CallbackQuery):
         pass
 
 
-@app.on_callback_query(filters.regex("PURVIPlaylists") & ~BANNED_USERS)
+@app.on_callback_query(filters.regex("VaishuPlaylists") & ~BANNED_USERS)
 @languageCB
 async def play_playlists_command(client, CallbackQuery, _):
     callback_data = CallbackQuery.data.strip()
@@ -798,12 +661,3 @@ async def slider_queries(client, CallbackQuery, _):
         return await CallbackQuery.edit_message_media(
             media=med, reply_markup=InlineKeyboardMarkup(buttons)
         )
-      
-
-# ===========================================================
-# ©️ 2025-26 All Rights Reserved by Purvi Bots (Im-Notcoder) 😎
-# 
-# 🧑‍💻 Developer : t.me/TheSigmaCoder
-# 🔗 Source link : GitHub.com/Im-Notcoder/Purvi-V2
-# 📢 Telegram channel : t.me/Purvi_Bots
-# ===========================================================
