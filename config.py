@@ -25,7 +25,7 @@ UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "main")
 GIT_TOKEN = getenv("GIT_TOKEN", "YOUR_GIT_TOKEN") # FOR PRIVATE SOURCE DEPLOYMENT 
 
 SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/sigma_bots")
-SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/BOTxBOOSTER")
+SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/Sigma_support2")
 
 AUTO_LEAVING_ASSISTANT = bool(getenv("AUTO_LEAVING_ASSISTANT", False))
 
